@@ -16,6 +16,6 @@ android:
   - tools
   - tools
   - platform-tools
-  - build-tools-23.0.1
-  - android-23
+  - build-tools-24.0.1
+  - android-24
 script: ./gradlew build
