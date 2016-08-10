@@ -57,7 +57,7 @@ public class PagerTest {
     TestSubscriber<TokenPage<String>> testSubscriber = new TestSubscriber<>();
 
     pager.getPageObservable().subscribe(testSubscriber);
-    wainUntilStopsLoading();
+    waitUntilStopsLoading();
 
     verify(getPageMock).call(anyString());
     testSubscriber.assertValue(FIRST_PAGE);
@@ -94,10 +94,13 @@ public class PagerTest {
     TestSubscriber<TokenPage<String>> testSubscriber = new TestSubscriber<>();
     pager.getPageObservable().subscribe(testSubscriber);
     //Wait until is NOT loading before calling .next()
-    wainUntilStopsLoading();
+    waitUntilStopsLoading();
+    TestSubscriber<Boolean> loadingSubscriber = new TestSubscriber<>();
 
+    pager.getIsLoadingObservable().first(isLoading -> isLoading).subscribe(loadingSubscriber);
     pager.next();
-    wainUntilStopsLoading();
+    loadingSubscriber.awaitTerminalEvent();
+    waitUntilStopsLoading();
 
     verify(getPageMock, times(2)).call(anyString());
     testSubscriber.assertReceivedOnNext(Arrays.asList(FIRST_PAGE, SECOND_PAGE));
@@ -144,7 +147,10 @@ public class PagerTest {
     given(getPageMock.call("2")).willReturn(Observable.just(THIRD_PAGE));
   }
 
-  private void wainUntilStopsLoading() {
+  private void waitUntilStartsLoading() {
+    pager.getIsLoadingObservable().toBlocking().first(isLoading -> isLoading);
+  }
+  private void waitUntilStopsLoading() {
     pager.getIsLoadingObservable().toBlocking().first(isLoading -> !isLoading);
   }
 }
