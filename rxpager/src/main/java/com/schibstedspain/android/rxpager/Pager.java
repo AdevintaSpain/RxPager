@@ -3,7 +3,6 @@ package com.schibstedspain.android.rxpager;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.functions.Func2;
-import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.PublishSubject;
 
@@ -29,7 +28,7 @@ public class Pager<RESULT, NEXT_PAGE_ID> {
   }
 
   public Observable<Boolean> getIsLoadingObservable() {
-    return isLoading.asObservable();
+    return isLoading.distinctUntilChanged();
   }
 
   public boolean hasNext() {
@@ -46,7 +45,6 @@ public class Pager<RESULT, NEXT_PAGE_ID> {
     return pageIds.startWith(source)
         .concatMap(next_page_id ->
             obtainFunction.call(next_page_id)
-                .subscribeOn(Schedulers.io())
                 .doOnSubscribe(() -> isLoading.onNext(true))
                 .doOnNext(next -> isLoading.onNext(false))
         )
