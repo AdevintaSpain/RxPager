@@ -29,7 +29,7 @@ public class Pager<RESULT, NEXT_PAGE_ID> {
   }
 
   public Observable<Boolean> getIsLoadingObservable() {
-    return isLoading.asObservable();
+    return isLoading.distinctUntilChanged();
   }
 
   public boolean hasNext() {
@@ -46,7 +46,6 @@ public class Pager<RESULT, NEXT_PAGE_ID> {
     return pageIds.startWith(source)
         .concatMap(next_page_id ->
             obtainFunction.call(next_page_id)
-                .subscribeOn(Schedulers.io())
                 .doOnSubscribe(() -> isLoading.onNext(true))
                 .doOnNext(next -> isLoading.onNext(false))
         )

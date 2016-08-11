@@ -12,6 +12,7 @@ import org.mockito.junit.MockitoRule;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.observers.TestSubscriber;
+import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
 import static org.junit.Assert.assertEquals;
@@ -54,13 +55,11 @@ public class PagerTest {
   @Test
   public void getPageObservableShouldReturnJustTheFirstPageEvenIfThereAreMore() throws Exception {
     givenThereAreThreePages();
-    TestSubscriber<TokenPage<String>> testSubscriber = new TestSubscriber<>();
 
-    pager.getPageObservable().subscribe(testSubscriber);
-    waitUntilStopsLoading();
+    TokenPage<String> page = pager.getPageObservable().toBlocking().first();
 
     verify(getPageMock).call(anyString());
-    testSubscriber.assertValue(FIRST_PAGE);
+    assertEquals(FIRST_PAGE, page);
   }
 
   @Test
@@ -87,20 +86,13 @@ public class PagerTest {
     assertTrue(hasNext);
   }
 
-
   @Test
   public void nextShouldGiveTheSecondPage() throws Exception {
     givenThereAreThreePages();
     TestSubscriber<TokenPage<String>> testSubscriber = new TestSubscriber<>();
     pager.getPageObservable().subscribe(testSubscriber);
-    //Wait until is NOT loading before calling .next()
-    waitUntilStopsLoading();
-    TestSubscriber<Boolean> loadingSubscriber = new TestSubscriber<>();
 
-    pager.getIsLoadingObservable().first(isLoading -> isLoading).subscribe(loadingSubscriber);
     pager.next();
-    loadingSubscriber.awaitTerminalEvent();
-    waitUntilStopsLoading();
 
     verify(getPageMock, times(2)).call(anyString());
     testSubscriber.assertReceivedOnNext(Arrays.asList(FIRST_PAGE, SECOND_PAGE));
@@ -128,9 +120,7 @@ public class PagerTest {
   @Test
   public void isLoadingObservableShouldReturnFalseAfterReceivingOnePage() throws Exception {
     given(getPageMock.call(anyString())).willReturn(Observable.just(FIRST_PAGE));
-    TestSubscriber<TokenPage<String>> testSubscriber = new TestSubscriber<>();
-    pager.getPageObservable().take(1).subscribe(testSubscriber);
-    testSubscriber.awaitTerminalEvent();
+    pager.getPageObservable().take(1).subscribe();
 
     Boolean isLoading = pager.getIsLoadingObservable().toBlocking().first();
 
@@ -145,12 +135,5 @@ public class PagerTest {
     given(getPageMock.call(null)).willReturn(Observable.just(FIRST_PAGE));
     given(getPageMock.call("1")).willReturn(Observable.just(SECOND_PAGE));
     given(getPageMock.call("2")).willReturn(Observable.just(THIRD_PAGE));
-  }
-
-  private void waitUntilStartsLoading() {
-    pager.getIsLoadingObservable().toBlocking().first(isLoading -> isLoading);
-  }
-  private void waitUntilStopsLoading() {
-    pager.getIsLoadingObservable().toBlocking().first(isLoading -> !isLoading);
   }
 }
