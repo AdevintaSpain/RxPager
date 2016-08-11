@@ -3,7 +3,6 @@ package com.schibstedspain.android.rxpager;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.functions.Func2;
-import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.PublishSubject;
 

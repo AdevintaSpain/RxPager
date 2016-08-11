@@ -12,7 +12,6 @@ import org.mockito.junit.MockitoRule;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.observers.TestSubscriber;
-import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
 import static org.junit.Assert.assertEquals;
