@@ -2,6 +2,7 @@ apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 apply from: '../quality.gradle'
 apply plugin: 'me.tatarka.retrolambda'
+apply plugin: 'com.novoda.bintray-release'
 
 retrolambda {
   javaVersion JavaVersion.VERSION_1_7
@@ -41,4 +42,13 @@ dependencies {
   testCompile 'org.mockito:mockito-core:1.10.19'
 
   compile 'io.reactivex:rxjava:1.1.5'
+}
+
+publish {
+  userOrg = 'schibstedspain'
+  groupId = 'com.schibstedspain.android'
+  artifactId = 'rxpager'
+  publishVersion = '0.0.1'
+  desc = 'RxPager is an Android library that helps handling paginated results in a reactive way'
+  website = 'https://github.com/SchibstedSpain/RxPager'
 }
