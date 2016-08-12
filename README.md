@@ -1,7 +1,7 @@
 # RxPager
 RxPager is an Android library that helps handling paginated results in a reactive way
 
-Is based on [this link](https://gist.github.com/mttkay/24881a0ce986f6ec4b4d) from [@mttkay](https://gist.github.com/mttkay)
+Is based on [this gist](https://gist.github.com/mttkay/24881a0ce986f6ec4b4d) from [@mttkay](https://gist.github.com/mttkay)
 
 ##Creation
 `Pager pager = new Pager(initialPageToken, (oldPageToken, pageResult) -> pageResult.getNextPageToken(), token -> getPage(token) )`
@@ -24,4 +24,4 @@ and last, there is `pager.hasNext()` wich returns a Boolean.
 ##Common data types
 There is available a POJO called: TokenPage
 `TokenPage(String nextPageToken, List<ITEM> results)`
-being ITEM the tipe of your elements in the list.
+being ITEM the type of your elements in the list.
