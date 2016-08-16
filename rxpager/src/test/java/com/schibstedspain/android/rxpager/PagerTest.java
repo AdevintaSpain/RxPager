@@ -90,11 +90,15 @@ public class PagerTest {
   public void nextShouldGiveTheSecondPage() {
     givenThereAreThreePages();
     TestSubscriber<TokenPage<String>> testSubscriber = new TestSubscriber<>();
+    TestSubscriber<Boolean> loadingSubscriber = new TestSubscriber<>();
+    pager.getIsLoadingObservable().take(3).subscribe(loadingSubscriber);
     pager.getPageObservable().subscribe(testSubscriber);
-    waitUntilStopsLoading();
+    loadingSubscriber.awaitTerminalEvent();
 
+    TestSubscriber<Boolean> nextLoaginSubscriber = new TestSubscriber<>();
+    pager.getIsLoadingObservable().take(3).subscribe(nextLoaginSubscriber);
     pager.next();
-    waitUntilStopsLoading();
+    nextLoaginSubscriber.awaitTerminalEvent();
 
     verify(getPageMock, times(2)).call(anyString());
     testSubscriber.assertReceivedOnNext(Arrays.asList(FIRST_PAGE, SECOND_PAGE));
