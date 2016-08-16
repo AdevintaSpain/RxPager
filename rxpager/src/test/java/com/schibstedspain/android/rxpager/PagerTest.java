@@ -12,6 +12,7 @@ import org.mockito.junit.MockitoRule;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.observers.TestSubscriber;
+import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
 import static org.junit.Assert.assertEquals;
@@ -23,10 +24,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class PagerTest {
+  private static final TokenPage<String> SINGLE_PAGE = new TokenPage<>(null, Collections.singletonList("first element"));
   private static final TokenPage<String> FIRST_PAGE = new TokenPage<>("1", Collections.singletonList("first page element"));
   private static final TokenPage<String> SECOND_PAGE = new TokenPage<>("2", Collections.singletonList("second page element"));
   private static final TokenPage<String> THIRD_PAGE = new TokenPage<>(null, Collections.singletonList("last page element"));
-  private static final TokenPage<String> SINGLE_PAGE = new TokenPage<>(null, Collections.singletonList("first element"));
   @Rule
   public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -40,7 +41,7 @@ public class PagerTest {
   }
 
   @Test
-  public void getPageObservableShoulReturnJustOnePageIfThereIsOnlyOne() throws Exception {
+  public void getPageObservableShouldReturnJustOnePageIfThereIsOnlyOne() {
     givenThereIsOnePage();
 
     TokenPage<String> firstPage = pager.getPageObservable()
@@ -52,7 +53,7 @@ public class PagerTest {
   }
 
   @Test
-  public void getPageObservableShouldReturnJustTheFirstPageEvenIfThereAreMore() throws Exception {
+  public void getPageObservableShouldReturnJustTheFirstPageEvenIfThereAreMore() {
     givenThereAreThreePages();
 
     TokenPage<String> page = pager.getPageObservable().toBlocking().first();
@@ -62,7 +63,7 @@ public class PagerTest {
   }
 
   @Test
-  public void hasMoreShouldReturnFalseWhenThereAreNoMore() throws Exception {
+  public void hasMoreShouldReturnFalseWhenThereAreNoMore() {
     givenThereIsOnePage();
     pager.getPageObservable()
         .toBlocking()
@@ -74,7 +75,7 @@ public class PagerTest {
   }
 
   @Test
-  public void hasMoreShouldReturnTrueWhenThereAreMore() throws Exception {
+  public void hasMoreShouldReturnTrueWhenThereAreMore() {
     givenThereAreThreePages();
     pager.getPageObservable()
         .toBlocking()
@@ -86,15 +87,21 @@ public class PagerTest {
   }
 
   @Test
-  public void nextShouldGiveTheSecondPage() throws Exception {
+  public void nextShouldGiveTheSecondPage() {
     givenThereAreThreePages();
     TestSubscriber<TokenPage<String>> testSubscriber = new TestSubscriber<>();
     pager.getPageObservable().subscribe(testSubscriber);
+    waitUntilStopsLoading();
 
     pager.next();
+    waitUntilStopsLoading();
 
     verify(getPageMock, times(2)).call(anyString());
     testSubscriber.assertReceivedOnNext(Arrays.asList(FIRST_PAGE, SECOND_PAGE));
+  }
+
+  private void waitUntilStopsLoading() {
+    pager.getIsLoadingObservable().toBlocking().first(isLoading -> !isLoading);
   }
 
   @Test
@@ -117,7 +124,7 @@ public class PagerTest {
   }
 
   @Test
-  public void isLoadingObservableShouldReturnFalseAfterReceivingOnePage() throws Exception {
+  public void isLoadingObservableShouldReturnFalseAfterReceivingOnePage() {
     given(getPageMock.call(anyString())).willReturn(Observable.just(FIRST_PAGE));
     pager.getPageObservable().take(1).subscribe();
 
@@ -126,13 +133,30 @@ public class PagerTest {
     assertFalse(isLoading);
   }
 
+  @Test
+  public void isLoadingObservableShouldReturnFalseAfterAFailure() {
+    givenGetPageFails();
+    TestSubscriber<TokenPage<String>> testSubscriber = new TestSubscriber<>();
+    pager.getPageObservable().subscribe(testSubscriber);
+    testSubscriber.awaitTerminalEvent();
+
+    Boolean isLoading = pager.getIsLoadingObservable().toBlocking().first();
+
+    testSubscriber.assertNotCompleted();
+    assertFalse(isLoading);
+  }
+
   private void givenThereIsOnePage() {
-    given(getPageMock.call(anyString())).willReturn(Observable.just(SINGLE_PAGE));
+    given(getPageMock.call(anyString())).willReturn(Observable.just(SINGLE_PAGE).subscribeOn(Schedulers.io()));
   }
 
   private void givenThereAreThreePages() {
-    given(getPageMock.call(null)).willReturn(Observable.just(FIRST_PAGE));
-    given(getPageMock.call("1")).willReturn(Observable.just(SECOND_PAGE));
-    given(getPageMock.call("2")).willReturn(Observable.just(THIRD_PAGE));
+    given(getPageMock.call(null)).willReturn(Observable.just(FIRST_PAGE).subscribeOn(Schedulers.io()));
+    given(getPageMock.call("1")).willReturn(Observable.just(SECOND_PAGE).subscribeOn(Schedulers.io()));
+    given(getPageMock.call("2")).willReturn(Observable.just(THIRD_PAGE).subscribeOn(Schedulers.io()));
+  }
+
+  private void givenGetPageFails() {
+    given(getPageMock.call(anyString())).willReturn(Observable.error(new Exception()));
   }
 }
