@@ -95,17 +95,13 @@ public class PagerTest {
     pager.getPageObservable().subscribe(testSubscriber);
     loadingSubscriber.awaitTerminalEvent();
 
-    TestSubscriber<Boolean> nextLoaginSubscriber = new TestSubscriber<>();
-    pager.getIsLoadingObservable().take(3).subscribe(nextLoaginSubscriber);
+    TestSubscriber<Boolean> nextLoadingSubscriber = new TestSubscriber<>();
+    pager.getIsLoadingObservable().take(3).subscribe(nextLoadingSubscriber);
     pager.next();
-    nextLoaginSubscriber.awaitTerminalEvent();
+    nextLoadingSubscriber.awaitTerminalEvent();
 
     verify(getPageMock, times(2)).call(anyString());
     testSubscriber.assertReceivedOnNext(Arrays.asList(FIRST_PAGE, SECOND_PAGE));
-  }
-
-  private void waitUntilStopsLoading() {
-    pager.getIsLoadingObservable().toBlocking().first(isLoading -> !isLoading);
   }
 
   @Test
