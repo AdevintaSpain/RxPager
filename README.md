@@ -23,5 +23,48 @@ and last, there is `pager.hasNext()` wich returns a Boolean.
 
 ##Common data types
 There is available a POJO called: TokenPage
+
 `TokenPage(String nextPageToken, List<ITEM> results)`
 being ITEM the type of your elements in the list.
+
+##Example
+This library includes tests to describe the behavior and also a Sample, in order to show you how it works I'll take the code from the Sample MainActivity.
+```java
+public class MainActivity extends AppCompatActivity {
+  private final CompositeSubscription compositeSubscription = new CompositeSubscription();
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    DataSource dataSource = new DataSource();
+    Pager<TokenPage<String>, String> pager = new Pager<>(
+        DataSource.FIRST_PAGE_TOKEN,
+        (oldToken, tokenPage) -> tokenPage.getNextPageToken(),
+        dataSource::getPage);
+
+    Adapter adapter = new Adapter();
+    MainActivityBinding binding = DataBindingUtil.setContentView(this, R.layout.main_activity);
+    binding.list.setLayoutManager(new LinearLayoutManager(this));
+    binding.list.setAdapter(adapter);
+    binding.list.addOnScrollListener(new OnScrollToBottomListener(pager::next));
+
+    Subscription pageSubscription = pager.getPageObservable()
+        .map(TokenPage::getResults)
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(adapter::addItems);
+    compositeSubscription.add(pageSubscription);
+
+    Subscription loadingSubscription = pager.getIsLoadingObservable()
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(adapter::setIsLoading);
+    compositeSubscription.add(loadingSubscription);
+  }
+
+  @Override
+  protected void onDestroy() {
+    compositeSubscription.clear();
+    super.onDestroy();
+  }
+}
+```
