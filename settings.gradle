@@ -1,1 +1,1 @@
-include ':rxpager'
+include ':rxpager', ':sample'
