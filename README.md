@@ -1,7 +1,17 @@
+[ ![Download](https://api.bintray.com/packages/schibstedspain/maven/rxpager/images/download.svg) ](https://bintray.com/schibstedspain/maven/rxpager/_latestVersion)
 # RxPager
 RxPager is an Android library that helps handling paginated results in a reactive way
 
 Is based on [this gist](https://gist.github.com/mttkay/24881a0ce986f6ec4b4d) from [@mttkay](https://gist.github.com/mttkay)
+
+##Donwload
+Grab the latest version from jCenter:
+
+```gradle
+dependencies {
+  compile 'com.schibstedspain.android:rxpager:1.0.0'`
+}
+```
 
 ##Creation
 `Pager pager = new Pager(initialPageToken, (oldPageToken, pageResult) -> pageResult.getNextPageToken(), token -> getPage(token) )`
