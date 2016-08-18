@@ -9,7 +9,7 @@ retrolambda {
 }
 
 group = 'com.schibstedspain.android'
-version = '0.0.1'
+version = '1.0.0'
 
 android {
   compileSdkVersion 24
@@ -48,7 +48,7 @@ publish {
   userOrg = 'schibstedspain'
   groupId = 'com.schibstedspain.android'
   artifactId = 'rxpager'
-  publishVersion = '0.0.1'
+  publishVersion = '1.0.0'
   desc = 'RxPager is an Android library that helps handling paginated results in a reactive way'
   website = 'https://github.com/SchibstedSpain/RxPager'
 }
