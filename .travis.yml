@@ -1,7 +1,12 @@
 language: android
+env:
+  global:
+    - secure: "basMNPGKKWl0/LAxvyN7Jt4lh06D5uOrtH+5l1LlRsDNZw89C6CBfH9xefl5VKYe0N2Nta9Jv8xqQXUzfXyzviZBOVnDvKt0ALXk884s0866e5R5yYFZBFMnn/jiCW9D29Pg97Xvx3naMSCaRHhnWPgU4zM1heTu+sMuQcqvxhFdRtnN9AGooImb6Wn/Pmusj9/zCso1eHGJ3AiDGcrKZ//gwt+DcicxR31QQeBxFXjM68bmf2lNzzWvHpqse5MGkag2dham0mrYL+0EeuTJUH1i0fNxUSlGvK5k5B7r/6TygbejnKNwkQPKamggNiXm3w8gagEnb1YIKedwm9WFQH4AZicmvB7u1hSbqqhPT5Mc1Xq7tW3hDcUvscyfPkCNtUGpi2fuMxS96Ny2OgIQZp3lfr8ciAJ8aLjoedPBIyLGakXYDPPJ17zwTPdbkHEXmCoKCicXXxqXfaP92xm7HSdGt2SeFnG/92isNWxLkU8Ovfd0gnal93HkTg+jEF2wBLdta4Y91j6ERKjb59oDc2SmW2kxRzKPryH5h9wEt/XnULRfHMUPel9ns3FS7p+02VsY6VQUB8RYZTS0ZDctstFz+X7MkrOIB6fXUjTBS9bpBeDqOVZJZRMxyXaQVQPFfdXHuZhzMHyslwSI5CjICyL8EATiYGxxhbTHbFcMOMU="
+    - secure: "v6gz2nF4iqIvMRTGNAj0TZv3Ceq/iYjkB5T97l0tpkJ6S8gYP39uCko6ar4SrdmyYzQH44EoAHHWgOUlFpUDz/CFRnZqSRm08dFkxJ/EIFqcYKuVnYm8OuzsbvALWC9BpT4ulTirOogR0Dmwk0PXcGh7uy9fQ2AZFyYa2c2g+vjiyY4TfvATPcz7EPXJ9X1Pr963bwJW+SoBS4R9SyN/16FNevC6RumXk1s9vjmOgfmcMyjqoKkXFDluxea9dClyqocG5TyJL+L/ea2I4yaCuuUbGyU6Akynr9TyFt3Vj9nTzjI9Mq1GlEbo7yetLYMA0we7HRFl93196FD4+dC5JVjLS8v0hLEEY+M588W8WGnNgoVK//q8GECeUMFvRhztrcvK2JZriOE2pZME4DCRDO0IKvhjsdogrAfG+nHBJiHGhcINY3D/VPiR/neQRkrM5bsWRUVnOS741BEC3doClwnjfwATVdFc7N6hMcF0e4hmnh/w6uAe67UTXNUmD5AV7px/G9DOpXcHNPUt3SWg9sMmyJFXBUDT67Bk0nVIS+mq3r0Mu4TToymZKA62zGgREVQ1a5JUpsLwrlCr5oFbPmpe/SZdljXdJNSodyD4TCZOpwuLHFpdKjXYD0U3E+OAQo7fQ6NNXos1SJ2sFOXeRQvMHEGwYF3N0D4kcW8fE3E="
 branches:
   only:
     - master
+    - /^v\d+\.\d+\.\d+$/
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 cache:
@@ -21,3 +26,9 @@ android:
   - extra-android-support
   - extra-android-m2repository
 script: ./gradlew build
+deploy:
+  - provider: script
+    script: scripts/bintrayUpload.sh
+    skip_cleanup: true
+    on:
+      tags: true
