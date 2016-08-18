@@ -4,7 +4,7 @@ RxPager is an Android library that helps handling paginated results in a reactiv
 
 Is based on [this gist](https://gist.github.com/mttkay/24881a0ce986f6ec4b4d) from [@mttkay](https://gist.github.com/mttkay)
 
-##Donwload
+##Download
 Grab the latest version from jCenter:
 
 ```gradle
