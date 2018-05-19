@@ -22,10 +22,10 @@ public class MainActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
 
     DataSource dataSource = new DataSource();
-    Pager<TokenPage<String>, String> pager = new Pager<TokenPage<String>, String>(
-        DataSource.FIRST_PAGE_TOKEN,
-        (oldToken, tokenPage) -> tokenPage.getNextPageToken(),
-        dataSource::getPage);
+    Pager<TokenPage<String>, String> pager = new Pager<>(
+            DataSource.FIRST_PAGE_TOKEN,
+            (oldToken, tokenPage) -> tokenPage.getNextPageToken(),
+            dataSource::getPage);
 
     Adapter adapter = new Adapter();
     MainActivityBinding binding = DataBindingUtil.setContentView(this, R.layout.main_activity);
@@ -36,12 +36,12 @@ public class MainActivity extends AppCompatActivity {
     Disposable pageSubscription = pager.getPageObservable()
         .map(TokenPage::getResults)
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(adapter::addItems);
+        .subscribe(adapter::addItems, Throwable::printStackTrace);
     compositeSubscription.add(pageSubscription);
 
     Disposable loadingSubscription = pager.getIsLoadingObservable()
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(adapter::setIsLoading);
+        .subscribe(adapter::setIsLoading, Throwable::printStackTrace);
     compositeSubscription.add(loadingSubscription);
   }
 
