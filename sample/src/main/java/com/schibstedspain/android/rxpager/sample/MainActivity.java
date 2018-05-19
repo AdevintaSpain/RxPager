@@ -9,19 +9,20 @@ import com.schibstedspain.android.rxpager.sample.adapter.Adapter;
 import com.schibstedspain.android.rxpager.sample.datasource.DataSource;
 import com.schibstedspain.android.rxpager.sample.databinding.MainActivityBinding;
 import com.schibstedspain.android.rxpager.tokenpage.TokenPage;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.subscriptions.CompositeSubscription;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 
 public class MainActivity extends AppCompatActivity {
-  private final CompositeSubscription compositeSubscription = new CompositeSubscription();
+  private final CompositeDisposable compositeSubscription = new CompositeDisposable();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     DataSource dataSource = new DataSource();
-    Pager<TokenPage<String>, String> pager = new Pager<>(
+    Pager<TokenPage<String>, String> pager = new Pager<TokenPage<String>, String>(
         DataSource.FIRST_PAGE_TOKEN,
         (oldToken, tokenPage) -> tokenPage.getNextPageToken(),
         dataSource::getPage);
@@ -32,13 +33,13 @@ public class MainActivity extends AppCompatActivity {
     binding.list.setAdapter(adapter);
     binding.list.addOnScrollListener(new OnScrollToBottomListener(pager::next));
 
-    Subscription pageSubscription = pager.getPageObservable()
+    Disposable pageSubscription = pager.getPageObservable()
         .map(TokenPage::getResults)
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(adapter::addItems);
     compositeSubscription.add(pageSubscription);
 
-    Subscription loadingSubscription = pager.getIsLoadingObservable()
+    Disposable loadingSubscription = pager.getIsLoadingObservable()
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(adapter::setIsLoading);
     compositeSubscription.add(loadingSubscription);
