@@ -1,26 +1,21 @@
-apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
-apply from: '../quality.gradle'
-apply plugin: 'me.tatarka.retrolambda'
 apply plugin: 'com.novoda.bintray-release'
-
-retrolambda {
-  javaVersion JavaVersion.VERSION_1_7
-}
 
 group = 'com.schibstedspain.android'
 version = '1.0.0'
 
 android {
-  compileSdkVersion 24
-  buildToolsVersion "24.0.1"
+  compileSdkVersion 27
 
   defaultConfig {
-    minSdkVersion 9
-    targetSdkVersion 24
+    minSdkVersion 14
+    targetSdkVersion 27
     versionCode 1
     versionName "1.0"
   }
+
+  flavorDimensions 'tier'
+
   buildTypes {
     debug {
       testCoverageEnabled true
