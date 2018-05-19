@@ -22,6 +22,7 @@ public class Pager<RESULT, NEXT_PAGE_ID> {
 
     pageIds = PublishSubject.create();
     isLoading = BehaviorSubject.create();
+    isLoading.onNext(false);
   }
 
   public Observable<RESULT> getPageObservable() {
