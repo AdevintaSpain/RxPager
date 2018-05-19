@@ -13,6 +13,7 @@ import org.mockito.junit.MockitoRule;
 import io.reactivex.Observable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Function;
+import io.reactivex.observers.TestObserver;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subscribers.TestSubscriber;
@@ -88,7 +89,7 @@ public class PagerTest {
   @Test
   public void nextShouldGiveTheSecondPage() throws Exception {
     givenThereAreThreePages();
-    TestSubscriber<TokenPage<String>> testSubscriber = new TestSubscriber<>();
+    TestObserver<TokenPage<String>> testSubscriber = new TestObserver<>();
     waitUntilLoaded(() -> pager.getPageObservable().subscribe(testSubscriber));
 
     waitUntilLoaded(() -> pager.next());
@@ -98,7 +99,7 @@ public class PagerTest {
   }
 
   private void waitUntilLoaded(Action action) throws Exception {
-    TestSubscriber<Boolean> loadingSubscriber = new TestSubscriber<>();
+    TestObserver<Boolean> loadingSubscriber = new TestObserver<>();
     pager.getIsLoadingObservable().take(3).subscribe(loadingSubscriber);
     action.run();
     loadingSubscriber.awaitTerminalEvent();
@@ -136,7 +137,7 @@ public class PagerTest {
   @Test
   public void isLoadingObservableShouldReturnFalseAfterAFailure() throws Exception {
     givenGetPageFails();
-    TestSubscriber<TokenPage<String>> testSubscriber = new TestSubscriber<>();
+    TestObserver<TokenPage<String>> testSubscriber = new TestObserver<>();
     pager.getPageObservable().subscribe(testSubscriber);
     testSubscriber.awaitTerminalEvent();
 
