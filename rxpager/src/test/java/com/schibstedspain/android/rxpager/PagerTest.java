@@ -3,8 +3,8 @@ package com.schibstedspain.android.rxpager;
 import com.schibstedspain.android.rxpager.tokenpage.TokenPage;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -54,7 +54,6 @@ public class PagerTest {
   }
 
   @Test
-  @Ignore
   public void getPageObservableShouldReturnJustTheFirstPageEvenIfThereAreMore() throws Exception {
     givenThereAreThreePages();
 
@@ -75,7 +74,6 @@ public class PagerTest {
   }
 
   @Test
-  @Ignore
   public void hasMoreShouldReturnTrueWhenThereAreMore() throws Exception {
     givenThereAreThreePages();
     pager.getPageObservable().blockingSingle();
@@ -86,16 +84,14 @@ public class PagerTest {
   }
 
   @Test
-  @Ignore
   public void nextShouldGiveTheSecondPage() throws Exception {
     givenThereAreThreePages();
-    TestObserver<TokenPage<String>> testObserver = pager.getPageObservable().test();
+    TestObserver<TokenPage<String>> testObserver = new TestObserver<>();
 
-    //waitUntilLoaded(() -> pager.getPageObservable().subscribe(testObserver));
+    waitUntilLoaded(() -> pager.getPageObservable().subscribe(testObserver));
+    waitUntilLoaded(() -> pager.next());
 
-    //waitUntilLoaded(() -> pager.next());
-
-    verify(getPageMock, times(1)).apply(anyString());
+    verify(getPageMock, times(2)).apply(anyString());
     testObserver.assertValueSequence(Arrays.asList(FIRST_PAGE, SECOND_PAGE));
   }
 
@@ -103,7 +99,7 @@ public class PagerTest {
     TestObserver<Boolean> loadingSubscriber = new TestObserver<>();
     pager.getIsLoadingObservable().take(3).subscribe(loadingSubscriber);
     action.run();
-    loadingSubscriber.awaitTerminalEvent();
+    loadingSubscriber.awaitTerminalEvent(2, TimeUnit.SECONDS);
   }
 
   @Test
