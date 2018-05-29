@@ -9,7 +9,7 @@ Grab the latest version from jCenter:
 
 ```gradle
 dependencies {
-  compile 'com.schibstedspain.android:rxpager:1.0.0'
+  compile 'com.schibstedspain.android:rxpager:2.0.0'
 }
 ```
 
