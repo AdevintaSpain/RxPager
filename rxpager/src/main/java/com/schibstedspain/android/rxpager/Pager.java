@@ -21,8 +21,7 @@ public class Pager<RESULT, NEXT_PAGE_ID> {
     this.obtainFunction = obtainFunction;
 
     pageIds = PublishSubject.create();
-    isLoading = BehaviorSubject.create();
-    isLoading.onNext(false);
+    isLoading = BehaviorSubject.createDefault(false);
   }
 
   public Observable<RESULT> getPageObservable() {
