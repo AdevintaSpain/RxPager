@@ -47,7 +47,7 @@ public class PagerTest {
   public void getPageObservableShouldReturnJustOnePageIfThereIsOnlyOne() throws Exception {
     givenThereIsOnePage();
 
-    TokenPage<String> firstPage = pager.getPageObservable().blockingFirst();
+    TokenPage<String> firstPage = pager.getPageObservable().blockingSingle();
 
     verify(getPageMock).apply(anyString());
     assertEquals(SINGLE_PAGE, firstPage);
@@ -66,7 +66,7 @@ public class PagerTest {
   @Test
   public void hasMoreShouldReturnFalseWhenThereAreNoMore() throws Exception {
     givenThereIsOnePage();
-    pager.getPageObservable().blockingFirst();
+    pager.getPageObservable().blockingSingle();
 
     boolean hasNext = pager.hasNext();
 
