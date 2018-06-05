@@ -3,18 +3,20 @@ package com.schibstedspain.android.rxpager;
 import com.schibstedspain.android.rxpager.tokenpage.TokenPage;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import rx.Observable;
-import rx.functions.Action0;
-import rx.functions.Func1;
-import rx.observers.TestSubscriber;
-import rx.schedulers.Schedulers;
-import rx.subjects.PublishSubject;
+
+import io.reactivex.Observable;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Function;
+import io.reactivex.observers.TestObserver;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -34,41 +36,37 @@ public class PagerTest {
 
   private Pager<TokenPage<String>, String> pager;
   @Mock
-  private Func1<String, Observable<TokenPage<String>>> getPageMock;
+  private Function<String, Observable<TokenPage<String>>> getPageMock;
 
   @Before
   public void setUp() {
-    pager = new Pager<>(null, (s, stringTokenPage) -> stringTokenPage.getNextPageToken(), getPageMock);
+    pager = new Pager<>("", (s, stringTokenPage) -> stringTokenPage.getNextPageToken(), getPageMock);
   }
 
   @Test
-  public void getPageObservableShouldReturnJustOnePageIfThereIsOnlyOne() {
+  public void getPageObservableShouldReturnJustOnePageIfThereIsOnlyOne() throws Exception {
     givenThereIsOnePage();
 
-    TokenPage<String> firstPage = pager.getPageObservable()
-        .toBlocking()
-        .single();
+    TokenPage<String> firstPage = pager.getPageObservable().blockingSingle();
 
-    verify(getPageMock).call(anyString());
+    verify(getPageMock).apply(anyString());
     assertEquals(SINGLE_PAGE, firstPage);
   }
 
   @Test
-  public void getPageObservableShouldReturnJustTheFirstPageEvenIfThereAreMore() {
+  public void getPageObservableShouldReturnJustTheFirstPageEvenIfThereAreMore() throws Exception {
     givenThereAreThreePages();
 
-    TokenPage<String> page = pager.getPageObservable().toBlocking().first();
+    TokenPage<String> page = pager.getPageObservable().blockingFirst();
 
-    verify(getPageMock).call(anyString());
+    verify(getPageMock).apply(anyString());
     assertEquals(FIRST_PAGE, page);
   }
 
   @Test
-  public void hasMoreShouldReturnFalseWhenThereAreNoMore() {
+  public void hasMoreShouldReturnFalseWhenThereAreNoMore() throws Exception {
     givenThereIsOnePage();
-    pager.getPageObservable()
-        .toBlocking()
-        .single();
+    pager.getPageObservable().blockingSingle();
 
     boolean hasNext = pager.hasNext();
 
@@ -76,11 +74,9 @@ public class PagerTest {
   }
 
   @Test
-  public void hasMoreShouldReturnTrueWhenThereAreMore() {
+  public void hasMoreShouldReturnTrueWhenThereAreMore() throws Exception {
     givenThereAreThreePages();
-    pager.getPageObservable()
-        .toBlocking()
-        .first();
+    pager.getPageObservable().blockingFirst();
 
     boolean hasNext = pager.hasNext();
 
@@ -88,77 +84,75 @@ public class PagerTest {
   }
 
   @Test
-  public void nextShouldGiveTheSecondPage() {
+  public void nextShouldGiveTheSecondPage() throws Exception {
     givenThereAreThreePages();
-    TestSubscriber<TokenPage<String>> testSubscriber = new TestSubscriber<>();
-    waitUntilLoaded(() -> pager.getPageObservable().subscribe(testSubscriber));
+    TestObserver<TokenPage<String>> testObserver = new TestObserver<>();
 
+    waitUntilLoaded(() -> pager.getPageObservable().subscribe(testObserver));
     waitUntilLoaded(() -> pager.next());
 
-    verify(getPageMock, times(2)).call(anyString());
-    testSubscriber.assertReceivedOnNext(Arrays.asList(FIRST_PAGE, SECOND_PAGE));
+    verify(getPageMock, times(2)).apply(anyString());
+    testObserver.assertValueSequence(Arrays.asList(FIRST_PAGE, SECOND_PAGE));
   }
 
-  private void waitUntilLoaded(Action0 action) {
-    TestSubscriber<Boolean> loadingSubscriber = new TestSubscriber<>();
-    pager.getIsLoadingObservable().take(3).subscribe(loadingSubscriber);
-    action.call();
-    loadingSubscriber.awaitTerminalEvent();
+  private void waitUntilLoaded(Action action) throws Exception {
+    TestObserver<Boolean> loadingSubscriber = pager.getIsLoadingObservable().take(3).test();
+    action.run();
+    loadingSubscriber.awaitTerminalEvent(2, TimeUnit.SECONDS);
   }
 
   @Test
   public void isLoadingObservableShouldReturnFalseBeforeAskingForOnePage() {
 
-    Boolean isLoadingBeforeSubscribe = pager.getIsLoadingObservable().toBlocking().first();
+    Boolean isLoadingBeforeSubscribe = pager.getIsLoadingObservable().blockingFirst();
 
     assertFalse(isLoadingBeforeSubscribe);
   }
 
   @Test
-  public void isLoadingObservableShouldReturnTrueWhileIsWaitingForAPage() {
-    PublishSubject<TokenPage<String>> getPageSubject = PublishSubject.<TokenPage<String>>create();
-    given(getPageMock.call(anyString())).willReturn(getPageSubject);
+  public void isLoadingObservableShouldReturnTrueWhileIsWaitingForAPage() throws Exception {
+    PublishSubject<TokenPage<String>> getPageSubject = PublishSubject.create();
+    given(getPageMock.apply(anyString())).willReturn(getPageSubject);
     pager.getPageObservable().subscribe();
 
-    Boolean isLoading = pager.getIsLoadingObservable().toBlocking().first();
+    Boolean isLoading = pager.getIsLoadingObservable().blockingFirst();
 
     assertTrue(isLoading);
   }
 
   @Test
-  public void isLoadingObservableShouldReturnFalseAfterReceivingOnePage() {
-    given(getPageMock.call(anyString())).willReturn(Observable.just(FIRST_PAGE));
+  public void isLoadingObservableShouldReturnFalseAfterReceivingOnePage() throws Exception {
+    given(getPageMock.apply(anyString())).willReturn(Observable.just(FIRST_PAGE));
     pager.getPageObservable().take(1).subscribe();
 
-    Boolean isLoading = pager.getIsLoadingObservable().toBlocking().first();
+    Boolean isLoading = pager.getIsLoadingObservable().blockingFirst();
 
     assertFalse(isLoading);
   }
 
   @Test
-  public void isLoadingObservableShouldReturnFalseAfterAFailure() {
+  public void isLoadingObservableShouldReturnFalseAfterAFailure() throws Exception {
     givenGetPageFails();
-    TestSubscriber<TokenPage<String>> testSubscriber = new TestSubscriber<>();
-    pager.getPageObservable().subscribe(testSubscriber);
+    TestObserver<TokenPage<String>> testSubscriber = pager.getPageObservable().test();
     testSubscriber.awaitTerminalEvent();
 
-    Boolean isLoading = pager.getIsLoadingObservable().toBlocking().first();
+    Boolean isLoading = pager.getIsLoadingObservable().blockingFirst();
 
-    testSubscriber.assertNotCompleted();
+    testSubscriber.assertNotComplete();
     assertFalse(isLoading);
   }
 
-  private void givenThereIsOnePage() {
-    given(getPageMock.call(anyString())).willReturn(Observable.just(SINGLE_PAGE).subscribeOn(Schedulers.io()));
+  private void givenThereIsOnePage() throws Exception {
+    given(getPageMock.apply(anyString())).willReturn(Observable.just(SINGLE_PAGE).subscribeOn(Schedulers.io()));
   }
 
-  private void givenThereAreThreePages() {
-    given(getPageMock.call(null)).willReturn(Observable.just(FIRST_PAGE).subscribeOn(Schedulers.io()));
-    given(getPageMock.call("1")).willReturn(Observable.just(SECOND_PAGE).subscribeOn(Schedulers.io()));
-    given(getPageMock.call("2")).willReturn(Observable.just(THIRD_PAGE).subscribeOn(Schedulers.io()));
+  private void givenThereAreThreePages() throws Exception {
+    given(getPageMock.apply("")).willReturn(Observable.just(FIRST_PAGE).subscribeOn(Schedulers.io()));
+    given(getPageMock.apply("1")).willReturn(Observable.just(SECOND_PAGE).subscribeOn(Schedulers.io()));
+    given(getPageMock.apply("2")).willReturn(Observable.just(THIRD_PAGE).subscribeOn(Schedulers.io()));
   }
 
-  private void givenGetPageFails() {
-    given(getPageMock.call(anyString())).willReturn(Observable.error(new Exception()));
+  private void givenGetPageFails() throws Exception {
+    given(getPageMock.apply(anyString())).willReturn(Observable.error(new Exception()));
   }
 }

@@ -4,7 +4,9 @@ import com.schibstedspain.android.rxpager.tokenpage.TokenPage;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
-import rx.Observable;
+
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 
 public class DataSource {
   public static final String FIRST_PAGE_TOKEN = "first";
@@ -37,7 +39,7 @@ public class DataSource {
 
   public Observable<TokenPage<String>> getPage(String s) {
     return Observable.fromCallable(() -> getPage(s, pages.get(s)))
-        .delay(1, TimeUnit.SECONDS);
+        .delay(1, TimeUnit.SECONDS, Schedulers.computation());
     // delay operates on Scheduler.computation()
     // if you are making a network call you should use: `.subscribeOn(Schedulers.io())`
   }

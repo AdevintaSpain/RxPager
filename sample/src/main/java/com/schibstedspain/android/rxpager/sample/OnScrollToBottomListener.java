@@ -2,12 +2,13 @@ package com.schibstedspain.android.rxpager.sample;
 
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import rx.functions.Action0;
+
+import io.reactivex.functions.Action;
 
 public class OnScrollToBottomListener extends RecyclerView.OnScrollListener {
-  private final Action0 action;
+  private final Action action;
 
-  public OnScrollToBottomListener(Action0 action) {
+  public OnScrollToBottomListener(Action action) {
     this.action = action;
   }
 
@@ -20,7 +21,11 @@ public class OnScrollToBottomListener extends RecyclerView.OnScrollListener {
     int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
 
     if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
-      action.call();
+      try {
+        action.run();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 }
