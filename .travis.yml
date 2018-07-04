@@ -8,7 +8,8 @@ branches:
     - master
     - /^v\d+\.\d+\.\d+$/
 before_cache:
-  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+  - find $HOME/.gradle -name *.lock -delete
+  - rm -f $HOME/.gradle/caches/*/fileHashes/fileHashes.bin
 cache:
   directories:
     - $HOME/.m2
