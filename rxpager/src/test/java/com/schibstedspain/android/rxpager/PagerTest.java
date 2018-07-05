@@ -147,8 +147,10 @@ public class PagerTest {
   }
 
   private void givenThereAreThreePages() throws Exception {
-    given(getPageMock.apply("")).willReturn(Observable.just(FIRST_PAGE).subscribeOn(Schedulers.io()));
-    given(getPageMock.apply("1")).willReturn(Observable.just(SECOND_PAGE).subscribeOn(Schedulers.io()));
+    given(getPageMock.apply("")).willReturn(
+        Observable.just(FIRST_PAGE).subscribeOn(Schedulers.io()).delay(40, TimeUnit.MILLISECONDS));
+    given(getPageMock.apply("1")).willReturn(
+        Observable.just(SECOND_PAGE).subscribeOn(Schedulers.io()).delay(40, TimeUnit.MILLISECONDS));
     given(getPageMock.apply("2")).willReturn(Observable.just(THIRD_PAGE).subscribeOn(Schedulers.io()));
   }
 

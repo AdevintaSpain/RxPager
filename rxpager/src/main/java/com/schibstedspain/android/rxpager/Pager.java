@@ -44,17 +44,15 @@ public class Pager<RESULT, NEXT_PAGE_ID> {
 
   private Observable<RESULT> page(final NEXT_PAGE_ID source) {
     return pageIds.startWith(source)
-        .concatMap(next_page_id ->
-            obtainFunction.apply(next_page_id)
-                .doOnSubscribe(onSubscribe -> isLoading.onNext(true))
-                .doOnTerminate(() -> isLoading.onNext(false))
-                .doOnDispose(() -> isLoading.onNext(false))
-        )
+        .doOnNext(result -> isLoading.onNext(true))
+        .concatMap(obtainFunction::apply)
         .doOnNext(page -> {
           nextPageId = pagingFunction.apply(nextPageId, page);
           if (nextPageId == null) {
             pageIds.onComplete();
           }
-        });
+        })
+        .doOnNext(result -> isLoading.onNext(false))
+        .doOnError(error -> isLoading.onNext(false));
   }
 }
