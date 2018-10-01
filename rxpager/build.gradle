@@ -5,11 +5,11 @@ group = 'com.schibstedspain.android'
 version = '2.0.0'
 
 android {
-  compileSdkVersion 27
+  compileSdkVersion 28
 
   defaultConfig {
     minSdkVersion 9
-    targetSdkVersion 27
+    targetSdkVersion 28
     versionName version
   }
 
@@ -37,7 +37,7 @@ android {
 }
 
 dependencies {
-  implementation 'io.reactivex.rxjava2:rxjava:2.1.16'
+  implementation 'io.reactivex.rxjava2:rxjava:2.1.17'
   implementation 'nl.littlerobots.rxlint:rxlint:1.6.1'
 
   testImplementation 'junit:junit:4.12'
